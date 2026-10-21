@@ -1,13 +1,45 @@
 """OpenAI-compatible MCP tools for Yandex Mail."""
-import os, hashlib, json, time
+import hmac, os, hashlib, json, time
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from . import imap_client as mail
 
 load_dotenv()
-mcp = FastMCP("RAVICOM Mail for Yandex")
 PREVIEWS = {}
+
+
+class BearerAuthMiddleware(BaseHTTPMiddleware):
+    """Protect the remote HTTP transport with a per-installation bearer key."""
+
+    async def dispatch(self, request, call_next):
+        # The health endpoint exposes no account or tool data.
+        if request.url.path == "/health":
+            return JSONResponse({"status": "ok", "service": "RAVICOM Mail for Yandex"})
+        expected = os.getenv("MCP_BEARER_TOKEN", "").strip()
+        supplied = request.headers.get("authorization", "")
+        if not expected:
+            return JSONResponse({"error": "HTTP transport is not configured securely"}, status_code=503)
+        if not supplied.startswith("Bearer ") or not hmac.compare_digest(supplied[7:], expected):
+            return JSONResponse(
+                {"error": "Unauthorized"},
+                status_code=401,
+                headers={"WWW-Authenticate": 'Bearer realm="ravicom-yandex-mail"'},
+            )
+        return await call_next(request)
+
+
+mcp = FastMCP("RAVICOM Mail for Yandex")
+
+
+def create_http_app():
+    """Create the protected Streamable HTTP ASGI app used by ChatGPT."""
+    app = mcp.streamable_http_app()
+    app.add_middleware(BearerAuthMiddleware)
+    return app
 
 def _connection():
     return mail.connect(os.getenv("YANDEX_IMAP_HOST", "imap.yandex.ru"), int(os.getenv("YANDEX_IMAP_PORT", "993")))
@@ -81,5 +113,11 @@ def execute_cleanup(preview_id:str,confirmation:str)->dict:
     if not plan or time.time()-plan["created"]>900: raise ValueError("Preview missing or expired; create a new preview")
     return _run(lambda c:mail.move(c,plan["folder"],"Trash",plan["uids"])) if plan["uids"] else {"moved":0,"to":"Trash"}
 
-def main(): mcp.run(transport="stdio")
+def main():
+    transport = os.getenv("MCP_TRANSPORT", "stdio").strip().lower()
+    if transport == "streamable-http":
+        import uvicorn
+        uvicorn.run(create_http_app(), host=os.getenv("MCP_HOST", "127.0.0.1"), port=int(os.getenv("MCP_PORT", "8000")))
+    else:
+        mcp.run(transport="stdio")
 if __name__=="__main__": main()

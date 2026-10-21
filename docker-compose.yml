@@ -2,5 +2,9 @@ services:
   ravicom-yandex-mail:
     build: .
     env_file: .env
+    environment:
+      MCP_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:8000:8000"
     stdin_open: true
     tty: true
