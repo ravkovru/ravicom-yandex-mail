@@ -1,6 +1,8 @@
 # RAVICOM Mail for Yandex
 
-Experimental local MCP server for Yandex Mail. Uses IMAP over TLS and OAuth XOAUTH2. It does not accept mailbox passwords, send mail, or permanently delete messages. Cleanup moves messages to Trash only after an explicit second call.
+RAVICOM Mail connects ChatGPT to Yandex Mail through MCP, IMAP over TLS, and OAuth/XOAUTH2. It never accepts mailbox passwords, sends mail, or permanently deletes messages. Cleanup first previews candidates and only moves them to Trash after an explicit second call.
+
+The repository supports local single-user development and a hosted per-user OAuth mode. Hosted mode gives every ChatGPT user their own Yandex authorization; Yandex tokens are encrypted at rest and cleanup confirmations are isolated by account. A public listing also requires an HTTPS domain, privacy policy, verified publisher identity, and OpenAI app review; deployment and listing are not automatic.
 
 ## Setup
 
@@ -20,17 +22,21 @@ OAuth device authorization availability depends on Yandex application settings/a
 
 Search dates use IMAP format such as `01-Jan-2025`; IDs are folder-scoped IMAP UIDs. Results are capped at 200 and cleanup previews at 500. A preview expires after 15 minutes and can be executed once with exact confirmation `MOVE TO TRASH`. The server never exposes permanent deletion.
 
-## Local Streamable HTTP test
+## Hosted public MCP deployment
 
-The server supports Streamable HTTP at `/mcp`, protected by a required bearer key. Use this mode with MCP Inspector or another development client. The bearer key protects the local HTTP endpoint; the Yandex OAuth access token is used only by this server for IMAP XOAUTH2.
+Hosted mode is intended for a stable HTTPS deployment with a persistent writable volume mounted at `/data`. Each request is protected by OAuth 2.1 (dynamic client registration and PKCE); the user authorizes their own Yandex mailbox. Configure secrets in the host's secret manager, never in Git or a public `.env` file:
 
-1. Complete the OAuth setup above and install the project: `python -m pip install -e '.[test]'`.
-2. Generate a separate MCP key: `openssl rand -hex 32`. Put it in your local `.env` as `MCP_BEARER_TOKEN=...`; do not commit or share the `.env` file.
-3. In `.env`, set `MCP_TRANSPORT=streamable-http`. Keep `MCP_HOST=127.0.0.1` and `MCP_PORT=8000`.
-4. Start `ravicom-yandex-mail` in a terminal.
-5. In MCP Inspector, select Streamable HTTP, enter `http://127.0.0.1:8000/mcp`, and configure `Authorization: Bearer <your MCP key>` in request headers. Test read tools first.
+- `PUBLIC_BASE_URL=https://<your-domain>`
+- `DATABASE_URL=sqlite:////data/ravicom-mail.sqlite3` (single service instance with persistent volume)
+- `TOKEN_ENCRYPTION_KEY=<Fernet key>`; generate with `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`
+- `YANDEX_CLIENT_ID` and newly rotated `YANDEX_CLIENT_SECRET`
+- `MCP_TRANSPORT=streamable-http`, `MCP_HOST=0.0.0.0`, `MCP_PORT=8000`
 
-This development HTTP key is for MCP Inspector only. Do not expose the bearer-protected HTTP endpoint through a tunnel: the documented tunnel client supports a local stdio MCP process directly, which is simpler and avoids exposing an HTTP listener.
+Set the Yandex OAuth application's callback URL to exactly `https://<your-domain>/oauth/yandex/callback`. The server exposes MCP at `/mcp`, health at `/health`, and standard OAuth metadata endpoints under `/.well-known/`. Use a TLS-terminating host/reverse proxy and preserve the persistent `/data` volume across restarts. SQLite is suitable for a single replica; multi-replica deployment needs a shared transactional database and a store adapter before scaling out.
+
+For a quick local startup of the hosted-mode server, copy `.env.example` to `.env`, set the above values and use `docker compose up --build`. The Compose file mounts persistent data in Docker and only publishes the port on localhost; this local instance is not reachable by ChatGPT from the internet. Do not use Secure MCP Tunnel for public directory submission: it is for private testing, while public review requires a stable public HTTPS endpoint.
+
+After deployment, connect `https://<your-domain>/mcp` as a custom remote MCP server in an eligible ChatGPT workspace and test the OAuth flow, tools, token refresh, and per-user isolation. Public directory listing then requires submission and approval in OpenAI Platform; OpenAI controls the review and publication decision.
 
 ## Test in ChatGPT through Secure MCP Tunnel
 
@@ -66,7 +72,7 @@ ChatGPT must allow custom MCP connections for your account/workspace. OpenAI's c
 
 ## Docker
 
-Copy `.env.example` to `.env`, fill local values, then run `docker compose run --rm ravicom-yandex-mail`. Attach stdin/terminal when using it as an stdio MCP server. For HTTP mode, set `MCP_TRANSPORT=streamable-http` and run `docker compose up --build`; port 8000 is published on localhost only. Never copy `.env` into an image.
+For hosted OAuth mode, configure the deployment values above and run `docker compose up --build`; port 8000 is published on localhost only and the database persists in the named Docker volume. Never copy `.env` into an image. For local stdio mode, run `docker compose run --rm ravicom-yandex-mail` with local Yandex token settings.
 
 ## Tests
 
@@ -74,4 +80,4 @@ Copy `.env.example` to `.env`, fill local values, then run `docker compose run -
 
 ## Security
 
-This is an experimental local server. The HTTP test mode requires `MCP_BEARER_TOKEN`; it fails closed when the key is absent. Yandex access tokens remain in local `.env` and process memory; restrict `.env` permissions. Keep the HTTP test mode bound to localhost. ChatGPT private testing can use Secure MCP Tunnel with this server's stdio transport. A public connection for other users needs per-user OAuth 2.1, a stable HTTPS deployment, and security review.
+The hosted server stores only encrypted Yandex tokens, uses OAuth state/PKCE on the ChatGPT authorization flow, and scopes every connected mailbox to its individual OAuth subject. Mutating mailbox tools require `mail:manage`; all cleanup previews are one-use, expire after 15 minutes, and are scoped to the account that created them. The server intentionally has no permanent-delete or send-mail tool. Before public release, configure a verified domain, rotate the OAuth secret, publish a privacy policy, conduct a security review, and complete OpenAI app review.

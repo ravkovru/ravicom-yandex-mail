@@ -4,7 +4,13 @@ services:
     env_file: .env
     environment:
       MCP_HOST: 0.0.0.0
+      MCP_TRANSPORT: streamable-http
     ports:
       - "127.0.0.1:8000:8000"
+    volumes:
+      - ravicom-mail-data:/data
     stdin_open: true
     tty: true
+
+volumes:
+  ravicom-mail-data:
