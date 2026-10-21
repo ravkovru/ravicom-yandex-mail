@@ -30,7 +30,39 @@ The server supports Streamable HTTP at `/mcp`, protected by a required bearer ke
 4. Start `ravicom-yandex-mail` in a terminal.
 5. In MCP Inspector, select Streamable HTTP, enter `http://127.0.0.1:8000/mcp`, and configure `Authorization: Bearer <your MCP key>` in request headers. Test read tools first.
 
-ChatGPT custom MCP connections do not accept a raw API key as user authentication. Connecting this private mailbox to ChatGPT requires an MCP OAuth 2.1 authorization server and a reachable HTTPS host (or a supported Secure MCP Tunnel for the MCP transport). ChatGPT Plus supports only read/fetch MCP permissions; write tools require Business or Enterprise/Edu. This development HTTP key is for local testing only and must not be exposed through a public tunnel.
+This development HTTP key is for MCP Inspector only. Do not expose the bearer-protected HTTP endpoint through a tunnel: the documented tunnel client supports a local stdio MCP process directly, which is simpler and avoids exposing an HTTP listener.
+
+## Test in ChatGPT through Secure MCP Tunnel
+
+This keeps the MCP server and Yandex token on your computer. The OpenAI tunnel client makes an outbound connection; no public inbound port is opened. The tunnel client requires a Platform tunnel ID and a runtime API key with Tunnels Read + Use. Creating a tunnel requires Tunnels Read + Manage. Tunnel permissions and ChatGPT custom MCP access are separate.
+
+1. Complete Yandex OAuth setup above and install the package: `python -m pip install -e .`. The `.env` must contain `YANDEX_ACCESS_TOKEN` and `YANDEX_EMAIL`.
+2. Sign in to [OpenAI Platform](https://platform.openai.com/settings/organization/tunnels), create a Secure MCP Tunnel, and associate it with the ChatGPT workspace you intend to use. Copy its `tunnel_id`.
+3. Download the current `tunnel-client` release from the official [OpenAI tunnel-client repository](https://github.com/openai/tunnel-client). In a terminal, follow its current install instructions and confirm `tunnel-client help quickstart` works.
+4. Create a runtime API key with Tunnels Read + Use. In zsh, enter it without putting the secret in shell history:
+
+   ```zsh
+   read -s "CONTROL_PLANE_API_KEY?Paste the OpenAI tunnel runtime key: "
+   export CONTROL_PLANE_API_KEY
+   ```
+
+   Paste the key at the hidden prompt and press Enter. Then run the commands below in the same terminal and keep it open while testing. Do not paste the key into ChatGPT, a command argument, or a tracked file.
+5. From the project directory, initialize and validate the tunnel profile. Replace the example ID with your tunnel ID:
+
+   ```sh
+   tunnel-client init \
+     --sample sample_mcp_stdio_local \
+     --profile ravicom-mail \
+     --tunnel-id tunnel_REPLACE_WITH_YOUR_ID \
+     --mcp-command "./scripts/run-mcp-server.sh"
+   tunnel-client doctor --profile ravicom-mail --explain
+   tunnel-client run --profile ravicom-mail
+   ```
+
+   Keep this process running. The wrapper starts the MCP server from the project directory and removes the OpenAI runtime key from the server process environment. The server reads the Yandex access token from `.env`; it stays on this computer.
+6. In ChatGPT Plugins, add a custom MCP server named `RAVICOM Mail`, choose **Tunnel**, select or enter the same tunnel ID, and choose **No authentication** for the private tunnel transport. Review the risk notice and create the plugin. Use the app in a new ChatGPT chat, then test `list_folders` and `mailbox_stats` before any write tools.
+
+ChatGPT must allow custom MCP connections for your account/workspace. OpenAI's current documentation lists full custom MCP for Business and Enterprise/Edu; Pro supports read/fetch only. Plus is not listed as eligible, so the presence of the form alone does not guarantee the server can be used. If the connection is unavailable on your plan, use an eligible workspace to test the full MVP. ChatGPT custom MCP authentication does not accept a customer-provided API key; Secure MCP Tunnel provides the private transport, while Yandex OAuth authorizes this local server to access the mailbox.
 
 ## Docker
 
@@ -42,4 +74,4 @@ Copy `.env.example` to `.env`, fill local values, then run `docker compose run -
 
 ## Security
 
-This is an experimental local server. The HTTP test mode requires `MCP_BEARER_TOKEN`; it fails closed when the key is absent. Yandex access tokens remain in local `.env` and process memory; restrict `.env` permissions. Keep the HTTP test mode bound to localhost. ChatGPT/public connections need per-user OAuth 2.1, a stable HTTPS deployment or supported private tunnel, and security review.
+This is an experimental local server. The HTTP test mode requires `MCP_BEARER_TOKEN`; it fails closed when the key is absent. Yandex access tokens remain in local `.env` and process memory; restrict `.env` permissions. Keep the HTTP test mode bound to localhost. ChatGPT private testing can use Secure MCP Tunnel with this server's stdio transport. A public connection for other users needs per-user OAuth 2.1, a stable HTTPS deployment, and security review.
