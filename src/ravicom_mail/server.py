@@ -177,7 +177,7 @@ def _new_mcp(remote: bool = False) -> FastMCP:
         kwargs = {
             "auth_server_provider": _provider,
             "auth": AuthSettings(issuer_url=base, resource_server_url=base,
-                                 required_scopes=["mail:read"], validate_token_resource=True,
+                                 required_scopes=["mail:read", "mail:manage"], validate_token_resource=True,
                                  client_registration_options=ClientRegistrationOptions(
                                      enabled=True, valid_scopes=["mail:read", "mail:manage"],
                                      default_scopes=["mail:read", "mail:manage"])),
