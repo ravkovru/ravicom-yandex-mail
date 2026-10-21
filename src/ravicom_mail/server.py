@@ -23,6 +23,7 @@ load_dotenv()
 
 _store: OAuthStore | None = None
 _provider: YandexOAuthProvider | None = None
+_local_previews: dict[str, dict] = {}
 
 
 def _mailbox_credentials() -> tuple[str | None, str | None]:
@@ -141,7 +142,8 @@ def cleanup_preview(folder: str = "INBOX", older_than_days: int = 365, limit: in
         _store.save_preview(preview_id, token.subject,
                             {"folder": folder, "uids": [m["uid"] for m in messages]})
     else:
-        raise RuntimeError("Persistent user authorization is required for cleanup")
+        _local_previews[preview_id] = {"folder": folder, "uids": [m["uid"] for m in messages],
+                                       "created": time.time()}
     return {"preview_id": preview_id, "folder": folder, "count": len(messages),
             "messages": messages, "expires_in_seconds": 900}
 
@@ -152,9 +154,12 @@ def execute_cleanup(preview_id: str, confirmation: str) -> dict:
         raise ValueError("Explicit confirmation required: MOVE TO TRASH")
     _require_manage()
     token = get_access_token()
-    if not token or not _store or not token.subject:
-        raise RuntimeError("Persistent user authorization is required for cleanup")
-    plan = _store.take_preview(preview_id, token.subject)
+    if token and _store and token.subject:
+        plan = _store.take_preview(preview_id, token.subject)
+    else:
+        plan = _local_previews.pop(preview_id, None)
+        if plan and time.time() - plan["created"] > 900:
+            plan = None
     if not plan:
         raise ValueError("Preview missing, expired, or belongs to another user")
     return _run(lambda c: mail.move(c, plan["folder"], "Trash", plan["uids"])) if plan["uids"] else {"moved": 0, "to": "Trash"}

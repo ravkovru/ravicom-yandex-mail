@@ -19,6 +19,20 @@ def test_cleanup_preview_is_persistent_and_user_scoped(tmp_path):
     assert store.take_preview("abc", "user-a") == {"folder": "INBOX", "uids": ["1"]}
     assert store.take_preview("abc", "user-a") is None
 
+
+def test_local_cleanup_preview_moves_to_trash_once(monkeypatch):
+    server._local_previews.clear()
+    calls = []
+    monkeypatch.setattr(server, "_run", lambda fn: fn(object()))
+    monkeypatch.setattr(server.mail, "search", lambda *args, **kwargs: [{"uid": "1"}])
+    monkeypatch.setattr(server.mail, "move", lambda c, src, dst, uids: calls.append((src, dst, uids)) or {"moved": len(uids)})
+    preview = server.cleanup_preview()
+    assert preview["count"] == 1
+    assert server.execute_cleanup(preview["preview_id"], "MOVE TO TRASH") == {"moved": 1}
+    assert calls == [("INBOX", "Trash", ["1"])]
+    with pytest.raises(ValueError, match="Preview missing"):
+        server.execute_cleanup(preview["preview_id"], "MOVE TO TRASH")
+
 def test_missing_token_is_clear(monkeypatch):
     monkeypatch.delenv("YANDEX_ACCESS_TOKEN",raising=False)
     with pytest.raises(OAuthError,match="YANDEX_ACCESS_TOKEN"):
