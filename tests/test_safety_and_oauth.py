@@ -52,3 +52,16 @@ def test_mailbox_tokens_are_encrypted_at_rest(tmp_path):
     raw = (tmp_path / "test.db").read_bytes()
     assert b"yandex-access-secret" not in raw
     assert store.mailbox("subject-1")["access_token"] == "yandex-access-secret"
+
+
+def test_revoking_connection_removes_tokens_and_previews(tmp_path):
+    store = OAuthStore(f"sqlite:///{tmp_path / 'test.db'}", Fernet.generate_key().decode())
+    store.save_mailbox("subject-1", "person@yandex.ru", "access", "refresh", 9999999999)
+    store.put_json("access_tokens", "access-hash", {"subject": "subject-1", "scopes": ["mail:read"]})
+    store.put_json("refresh_tokens", "refresh-hash", {"subject": "subject-1", "scopes": ["mail:read"]})
+    store.save_preview("preview", "subject-1", {"folder": "INBOX", "uids": ["1"]})
+    store.delete_subject_data("subject-1")
+    assert store.mailbox("subject-1") is None
+    assert store.get_json("access_tokens", "access-hash") is None
+    assert store.get_json("refresh_tokens", "refresh-hash") is None
+    assert store.take_preview("preview", "subject-1") is None

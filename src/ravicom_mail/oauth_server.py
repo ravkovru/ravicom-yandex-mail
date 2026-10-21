@@ -135,6 +135,17 @@ class OAuthStore:
             return None
         return json.loads(row[0])
 
+    def delete_subject_data(self, subject: str):
+        """Remove a mailbox and all OAuth grants tied to its connection."""
+        with self.lock, self._db() as db:
+            db.execute("DELETE FROM mailboxes WHERE subject=?", (subject,))
+            db.execute("DELETE FROM cleanup_previews WHERE subject=?", (subject,))
+            for table in ("access_tokens", "refresh_tokens", "auth_codes"):
+                rows = db.execute(f"SELECT token_hash,body FROM {table}").fetchall()
+                for row in rows:
+                    if json.loads(row["body"]).get("subject") == subject:
+                        db.execute(f"DELETE FROM {table} WHERE token_hash=?", (row["token_hash"],))
+
 
 class YandexOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, RefreshToken, AccessToken]):
     def __init__(self, store: OAuthStore, public_base_url: str, yandex_client_id: str, yandex_client_secret: str):
@@ -255,8 +266,11 @@ class YandexOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, Re
                            expires_at=int(data["expires_at"]), resource=data.get("resource"), subject=data.get("subject"))
 
     async def revoke_token(self, token: AccessToken | RefreshToken):
-        table = "access_tokens" if isinstance(token, AccessToken) else "refresh_tokens"
-        self.store.delete(table, _hash(token.token))
+        if token.subject:
+            self.store.delete_subject_data(token.subject)
+        else:
+            table = "access_tokens" if isinstance(token, AccessToken) else "refresh_tokens"
+            self.store.delete(table, _hash(token.token))
 
     async def get_mailbox(self, subject: str):
         mailbox = self.store.mailbox(subject)

@@ -29,6 +29,7 @@ Hosted mode is intended for a stable HTTPS deployment with a persistent writable
 - `PUBLIC_BASE_URL=https://<your-domain>`
 - `DATABASE_URL=sqlite:////data/ravicom-mail.sqlite3` (single service instance with persistent volume)
 - `TOKEN_ENCRYPTION_KEY=<Fernet key>`; generate with `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`
+- `PRIVACY_CONTACT_EMAIL=<public privacy contact address>`; shown on `/privacy`
 - `YANDEX_CLIENT_ID` and newly rotated `YANDEX_CLIENT_SECRET`
 - `MCP_TRANSPORT=streamable-http`, `MCP_HOST=0.0.0.0`, `MCP_PORT=8000`
 
@@ -36,7 +37,7 @@ Set the Yandex OAuth application's callback URL to exactly `https://<your-domain
 
 For a quick local startup of the hosted-mode server, copy `.env.example` to `.env`, set the above values and use `docker compose up --build`. The Compose file mounts persistent data in Docker and only publishes the port on localhost; this local instance is not reachable by ChatGPT from the internet. Do not use Secure MCP Tunnel for public directory submission: it is for private testing, while public review requires a stable public HTTPS endpoint.
 
-After deployment, connect `https://<your-domain>/mcp` as a custom remote MCP server in an eligible ChatGPT workspace and test the OAuth flow, tools, token refresh, and per-user isolation. Public directory listing then requires submission and approval in OpenAI Platform; OpenAI controls the review and publication decision.
+After deployment, check `https://<your-domain>/privacy` and `https://<your-domain>/health`, then connect `https://<your-domain>/mcp` as a custom remote MCP server in an eligible ChatGPT workspace and test the OAuth flow, tools, token refresh, revocation, and per-user isolation. Public directory listing then requires submission and approval in OpenAI Platform; OpenAI controls the review and publication decision.
 
 ## Test in ChatGPT through Secure MCP Tunnel
 
