@@ -192,10 +192,14 @@ def _new_mcp(remote: bool = False) -> FastMCP:
 def create_http_app():
     """Create public OAuth-protected Streamable HTTP app."""
     global _store, _provider
-    required = ("PUBLIC_BASE_URL", "YANDEX_CLIENT_ID", "YANDEX_CLIENT_SECRET", "TOKEN_ENCRYPTION_KEY")
+    required = ("YANDEX_CLIENT_ID", "YANDEX_CLIENT_SECRET", "TOKEN_ENCRYPTION_KEY", "PRIVACY_CONTACT_EMAIL")
     missing = [key for key in required if not os.getenv(key)]
     if missing:
         raise RuntimeError("Public OAuth configuration missing: " + ", ".join(missing))
+    base = os.getenv("PUBLIC_BASE_URL") or os.getenv("RENDER_EXTERNAL_URL", "")
+    if not base.startswith("https://"):
+        raise RuntimeError("PUBLIC_BASE_URL must be the public HTTPS service URL")
+    os.environ["PUBLIC_BASE_URL"] = base.rstrip("/")
     app_mcp = _new_mcp(remote=True)
     @app_mcp.custom_route("/health", methods=["GET"], include_in_schema=False)
     async def health(_: Request):
@@ -260,7 +264,9 @@ def main():
     if transport == "streamable-http":
         import uvicorn
         uvicorn.run(create_http_app(), host=os.getenv("MCP_HOST", "0.0.0.0"),
-                    port=int(os.getenv("MCP_PORT", "8000")))
+                    port=int(os.getenv("PORT", os.getenv("MCP_PORT", "8000"))),
+                    # OAuth codes arrive in the callback query string. Avoid writing them to access logs.
+                    access_log=False)
     else:
         server = _new_mcp(remote=False)
         server.run(transport="stdio")

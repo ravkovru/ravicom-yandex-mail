@@ -24,20 +24,36 @@ Search dates use IMAP format such as `01-Jan-2025`; IDs are folder-scoped IMAP U
 
 ## Hosted public MCP deployment
 
-Hosted mode is intended for a stable HTTPS deployment with a persistent writable volume mounted at `/data`. Each request is protected by OAuth 2.1 (dynamic client registration and PKCE); the user authorizes their own Yandex mailbox. Configure secrets in the host's secret manager, never in Git or a public `.env` file:
+Hosted mode is intended for a stable HTTPS deployment with a persistent writable volume mounted at `/data`. Each user authorizes their own Yandex mailbox through OAuth 2.1; Yandex tokens are encrypted in the database. Keep one service instance while using SQLite. Do not scale horizontally or remove the persistent disk without first moving to a shared database adapter.
+
+### Public deployment with Docker Compose
+
+Requirements: a Linux server with Docker Compose, a domain whose DNS A/AAAA records point to the server, and inbound ports 80 and 443 open. Caddy obtains and renews HTTPS certificates automatically.
+
+1. Create a Yandex OAuth application as described in Setup. For its web platform, add `https://YOUR_DOMAIN/oauth/yandex/callback` to the application's Redirect URI list. Yandex only accepts redirect URLs registered in the app settings.
+2. On the server, copy `deploy/.env.production.example` to `.env.production`. Set `DOMAIN`, `PRIVACY_CONTACT_EMAIL`, `YANDEX_CLIENT_ID`, and `YANDEX_CLIENT_SECRET`. Generate the Fernet key locally with `python3 -c 'import base64,os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'` and set `TOKEN_ENCRYPTION_KEY`. Keep `.env.production` private; Git ignores it.
+3. Start the service with `docker compose --env-file .env.production -f docker-compose.production.yml up -d --build`.
+4. Confirm `https://YOUR_DOMAIN/health` and `https://YOUR_DOMAIN/privacy` load. The public MCP endpoint is `https://YOUR_DOMAIN/mcp`.
+5. Add that HTTPS URL as a custom remote MCP server in an eligible ChatGPT workspace. Choose OAuth, complete Yandex authorization, then test `list_folders` and `mailbox_stats` before any write tool.
+
+The application container runs as a non-root user, has a health check, and stores its database on a persistent named volume. Caddy terminates TLS and proxies to the application over the private Docker network. Back up the database volume and Fernet key together; treat both as sensitive.
+
+### Hosted environment variables
+
+For a different Docker host, configure these values in its secret manager, never in Git:
 
 - `PUBLIC_BASE_URL=https://<your-domain>`
 - `DATABASE_URL=sqlite:////data/ravicom-mail.sqlite3` (single service instance with persistent volume)
-- `TOKEN_ENCRYPTION_KEY=<Fernet key>`; generate with `python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'`
-- `PRIVACY_CONTACT_EMAIL=<public privacy contact address>`; shown on `/privacy`
-- `YANDEX_CLIENT_ID` and newly rotated `YANDEX_CLIENT_SECRET`
+- `TOKEN_ENCRYPTION_KEY=<Fernet key>`; generate with `python3 -c 'import base64,os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'`
+- `PRIVACY_CONTACT_EMAIL=<public privacy contact address>`; required at startup and shown on `/privacy`
+- `YANDEX_CLIENT_ID` and `YANDEX_CLIENT_SECRET`
 - `MCP_TRANSPORT=streamable-http`, `MCP_HOST=0.0.0.0`, `MCP_PORT=8000`
 
-Set the Yandex OAuth application's callback URL to exactly `https://<your-domain>/oauth/yandex/callback`. The server exposes MCP at `/mcp`, health at `/health`, and standard OAuth metadata endpoints under `/.well-known/`. Use a TLS-terminating host/reverse proxy and preserve the persistent `/data` volume across restarts. SQLite is suitable for a single replica; multi-replica deployment needs a shared transactional database and a store adapter before scaling out.
+The service honors the hosting platform's `PORT` variable and Render's `RENDER_EXTERNAL_URL`. `PUBLIC_BASE_URL` must be the stable HTTPS origin used by the Yandex OAuth callback. The server exposes MCP at `/mcp`, health at `/health`, and OAuth metadata under `/.well-known/`. Keep `/data` persistent. SQLite is suitable for one replica; multi-replica hosting needs a shared transactional database and store adapter.
 
-For a quick local startup of the hosted-mode server, copy `.env.example` to `.env`, set the above values and use `docker compose up --build`. The Compose file mounts persistent data in Docker and only publishes the port on localhost; this local instance is not reachable by ChatGPT from the internet. Do not use Secure MCP Tunnel for public directory submission: it is for private testing, while public review requires a stable public HTTPS endpoint.
+For local hosted-mode checks, use `docker compose up --build` after setting the environment values in `.env`. The local Compose file binds to localhost and is not reachable by other users. Secure MCP Tunnel is for private testing; public access needs a stable HTTPS endpoint.
 
-After deployment, check `https://<your-domain>/privacy` and `https://<your-domain>/health`, then connect `https://<your-domain>/mcp` as a custom remote MCP server in an eligible ChatGPT workspace and test the OAuth flow, tools, token refresh, revocation, and per-user isolation. Public directory listing then requires submission and approval in OpenAI Platform; OpenAI controls the review and publication decision.
+After deployment, test `/health`, `/privacy`, OAuth discovery, account connection, token refresh, revocation, and per-user isolation. Custom MCP connections are available in eligible ChatGPT Business and Enterprise/Edu workspaces; availability also depends on workspace settings. Public app directory submission and review are separate from deployment and are not automatic.
 
 ## Test in ChatGPT through Secure MCP Tunnel
 

@@ -1,0 +1,3 @@
+{$DOMAIN} {
+	reverse_proxy ravicom-yandex-mail:8000
+}

@@ -1,4 +1,5 @@
 import pytest
+from starlette.testclient import TestClient
 from cryptography.fernet import Fernet
 from ravicom_mail.oauth import OAuthError, access_token
 from ravicom_mail import server
@@ -43,6 +44,45 @@ def test_public_http_requires_oauth_configuration(monkeypatch):
         monkeypatch.delenv(key, raising=False)
     with pytest.raises(RuntimeError, match="Public OAuth configuration missing"):
         server.create_http_app()
+
+
+def test_public_http_requires_https_and_privacy_contact(monkeypatch):
+    monkeypatch.setenv("YANDEX_CLIENT_ID", "test-client")
+    monkeypatch.setenv("YANDEX_CLIENT_SECRET", "test-secret")
+    monkeypatch.setenv("TOKEN_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("PRIVACY_CONTACT_EMAIL", "privacy@example.com")
+    monkeypatch.setenv("PUBLIC_BASE_URL", "http://mail.example.com")
+    with pytest.raises(RuntimeError, match="public HTTPS"):
+        server.create_http_app()
+
+
+def test_render_external_url_can_supply_public_base(monkeypatch, tmp_path):
+    monkeypatch.delenv("PUBLIC_BASE_URL", raising=False)
+    monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://mail.example.com/")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'mail.db'}")
+    monkeypatch.setenv("YANDEX_CLIENT_ID", "test-client")
+    monkeypatch.setenv("YANDEX_CLIENT_SECRET", "test-secret")
+    monkeypatch.setenv("TOKEN_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("PRIVACY_CONTACT_EMAIL", "privacy@example.com")
+    app = server.create_http_app()
+    assert app is not None
+    assert server._provider.base_url == "https://mail.example.com"
+
+
+def test_public_endpoints_are_live_and_mcp_requires_oauth(monkeypatch, tmp_path):
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://mail.example.com")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'http.db'}")
+    monkeypatch.setenv("YANDEX_CLIENT_ID", "test-client")
+    monkeypatch.setenv("YANDEX_CLIENT_SECRET", "test-secret")
+    monkeypatch.setenv("TOKEN_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("PRIVACY_CONTACT_EMAIL", "privacy@example.com")
+    app = server.create_http_app()
+    with TestClient(app, base_url="https://mail.example.com") as client:
+        assert client.get("/health").status_code == 200
+        assert client.get("/privacy").status_code == 200
+        assert client.get("/.well-known/oauth-authorization-server").status_code == 200
+        assert client.get("/.well-known/oauth-protected-resource").status_code == 200
+        assert client.post("/mcp", json={}).status_code == 401
 
 
 def test_mailbox_tokens_are_encrypted_at_rest(tmp_path):
