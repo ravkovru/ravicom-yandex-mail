@@ -18,7 +18,7 @@ Register `https://DOMAIN/oauth/yandex/callback` in Yandex OAuth before starting 
 2. Fill the values above and set `DOMAIN`.
 3. Start with `docker compose -f docker-compose.production.yml up -d --build`.
 4. Verify `/health`, `/privacy`, `/terms`, `/support`, and the OAuth discovery endpoints.
-5. Use `plugin.json.example` as the submission manifest after replacing `YOUR_DOMAIN` and adding the final app identity assets.
+5. Use `plugin.json.example` as the submission manifest after replacing `mail.ravicom.ru` and adding the final app identity assets.
 
 ## VDSINA FASTPANEL
 
