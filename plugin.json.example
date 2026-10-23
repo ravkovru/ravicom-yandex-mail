@@ -10,21 +10,33 @@
   "homepage": "https://mail.ravicom.ru",
   "repository": "https://github.com/ravkovru/ravicom-yandex-mail",
   "license": "MIT",
-  "keywords": ["yandex", "mail", "email", "inbox", "mcp"],
+  "keywords": [
+    "yandex",
+    "mail",
+    "email",
+    "inbox",
+    "mcp"
+  ],
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "RAVICOM Mail - Яндекс.Почта",
         "shortDescription": "Почта Яндекса в ChatGPT",
-        "longDescription": "Подключите свой ящик Яндекс.Почты для поиска, чтения и организации писем. RAVICOM Mail не отправляет письма и не удаляет их безвозвратно.",
+        "longDescription": "Подключите свой ящик Яндекс.Почты для поиска, чтения, создания папок и организации писем. RAVICOM Mail не отправляет письма и не удаляет их безвозвратно.",
         "developerName": "RAVICOM",
         "category": "Productivity",
-        "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
+        "capabilities": [
+          "Search mail",
+          "Read mail",
+          "Organize mail",
+          "Preview cleanup"
+        ],
         "websiteURL": "https://mail.ravicom.ru",
         "supportURL": "https://mail.ravicom.ru/support",
         "privacyPolicyURL": "https://mail.ravicom.ru/privacy",
         "termsOfServiceURL": "https://mail.ravicom.ru/terms",
         "defaultPrompt": [
+          "Создай папку «Работа» и перемести туда выбранные письма.",
           "Покажи папки Яндекс.Почты.",
           "Найди непрочитанные письма за эту неделю.",
           "Покажи старые прочитанные письма во входящих."
@@ -37,11 +49,30 @@
       "review": {
         "test_cases": {
           "positive": [
-            {"description": "List folders", "prompt": "Show my Yandex Mail folders."},
-            {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics."},
-            {"description": "Search unread mail", "prompt": "Find unread messages from this week."},
-            {"description": "Read one message", "prompt": "Open the first matching message and summarize it."},
-            {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox."}
+            {
+              "description": "List folders",
+              "prompt": "Show my Yandex Mail folders."
+            },
+            {
+              "description": "Show mailbox statistics",
+              "prompt": "Show my mailbox statistics."
+            },
+            {
+              "description": "Search unread mail",
+              "prompt": "Find unread messages from this week."
+            },
+            {
+              "description": "Read one message",
+              "prompt": "Open the first matching message and summarize it."
+            },
+            {
+              "description": "Preview cleanup",
+              "prompt": "Preview old read messages in my inbox."
+            },
+            {
+              "description": "Create a folder",
+              "prompt": "Create a folder named Work."
+            }
           ]
         }
       }

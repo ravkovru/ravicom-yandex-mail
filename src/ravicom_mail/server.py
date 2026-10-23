@@ -79,6 +79,12 @@ def list_folders() -> list[dict]:
     return _run(mail.folders)
 
 
+def create_folder(folder_name: str) -> dict:
+    """Create a new mailbox folder."""
+    _require_manage()
+    return _run(lambda c: mail.create_folder(c, folder_name))
+
+
 def mailbox_stats() -> dict:
     """Return mailbox folder, message, and unread counts."""
     def read(client):
@@ -183,7 +189,7 @@ def _new_mcp(remote: bool = False) -> FastMCP:
                                      default_scopes=["mail:read", "mail:manage"])),
         }
     server = FastMCP("RAVICOM Mail for Yandex", **kwargs)
-    for tool in (list_folders, mailbox_stats, search_mail, read_message, mark_read,
+    for tool in (list_folders, create_folder, mailbox_stats, search_mail, read_message, mark_read,
                  mark_unread, move_messages, cleanup_preview, execute_cleanup):
         server.add_tool(tool)
     return server

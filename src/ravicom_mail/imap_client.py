@@ -24,6 +24,16 @@ def folders(client):
         if m: result.append({"name":m.group(3).strip('"'),"flags":m.group(1).split(),"delimiter":m.group(2)})
     return result
 
+def create_folder(client, folder):
+    """Create a mailbox folder and return its name."""
+    folder = str(folder or "").strip()
+    if not folder or len(folder) > 120:
+        raise MailError("Folder name must be between 1 and 120 characters")
+    typ, _ = client.create(folder)
+    if typ != "OK":
+        raise MailError(f"Could not create folder {folder}")
+    return {"created": True, "folder": folder}
+
 def _select(client,folder):
     typ,data=client.select(folder,readonly=False)
     if typ!="OK": raise MailError(f"Cannot select folder {folder}")
