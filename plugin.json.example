@@ -1,0 +1,50 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ravicom-mail",
+  "version": "0.1.0",
+  "description": "Connect your own Yandex Mail account to ChatGPT for safe mailbox search and organization.",
+  "author": {
+    "name": "RAVICOM",
+    "url": "https://YOUR_DOMAIN"
+  },
+  "homepage": "https://YOUR_DOMAIN",
+  "repository": "https://github.com/ravkovru/ravicom-yandex-mail",
+  "license": "MIT",
+  "keywords": ["yandex", "mail", "email", "inbox", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "RAVICOM Mail",
+        "shortDescription": "Manage your Yandex Mail",
+        "longDescription": "Connect your own Yandex Mail account to search messages, read mail, mark messages, move messages, and preview safe cleanup. RAVICOM Mail never sends mail or permanently deletes messages.",
+        "developerName": "RAVICOM",
+        "category": "Productivity",
+        "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
+        "websiteURL": "https://YOUR_DOMAIN",
+        "supportURL": "https://YOUR_DOMAIN/support",
+        "privacyPolicyURL": "https://YOUR_DOMAIN/privacy",
+        "termsOfServiceURL": "https://YOUR_DOMAIN/terms",
+        "defaultPrompt": [
+          "Show my Yandex Mail folders.",
+          "Find unread messages from this week.",
+          "Preview old read messages in my inbox."
+        ],
+        "brandColor": "#111111",
+        "brandColorDark": "#FFFFFF",
+        "logo": "./assets/logo.svg",
+        "composerIcon": "./assets/icon.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {"description": "List folders", "prompt": "Show my Yandex Mail folders."},
+            {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics."},
+            {"description": "Search unread mail", "prompt": "Find unread messages from this week."},
+            {"description": "Read one message", "prompt": "Open the first matching message and summarize it."},
+            {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox."}
+          ]
+        }
+      }
+    }
+  }
+}

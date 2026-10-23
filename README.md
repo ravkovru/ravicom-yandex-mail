@@ -24,6 +24,8 @@ Search dates use IMAP format such as `01-Jan-2025`; IDs are folder-scoped IMAP U
 
 ## Hosted public MCP deployment
 
+The repository includes the public product runbook in [`deploy/README.md`](deploy/README.md), a portable MCP server manifest in [`mcp.json`](mcp.json), and a public listing template in [`plugin.json.example`](plugin.json.example). Replace `YOUR_DOMAIN` only after the final HTTPS hostname is selected.
+
 Hosted mode is intended for a stable HTTPS deployment with a persistent writable volume mounted at `/data`. Each user authorizes their own Yandex mailbox through OAuth 2.1; Yandex tokens are encrypted in the database. Keep one service instance while using SQLite. Do not scale horizontally or remove the persistent disk without first moving to a shared database adapter.
 
 ### Public deployment with Docker Compose

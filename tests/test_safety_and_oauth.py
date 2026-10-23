@@ -85,6 +85,21 @@ def test_public_endpoints_are_live_and_mcp_requires_oauth(monkeypatch, tmp_path)
         assert client.post("/mcp", json={}).status_code == 401
 
 
+def test_public_product_pages_and_challenge(monkeypatch, tmp_path):
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://mail.example.com")
+    monkeypatch.setenv("YANDEX_CLIENT_ID", "client")
+    monkeypatch.setenv("YANDEX_CLIENT_SECRET", "secret")
+    monkeypatch.setenv("TOKEN_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("PRIVACY_CONTACT_EMAIL", "privacy@example.com")
+    monkeypatch.setenv("OPENAI_APPS_CHALLENGE", "challenge-token")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'pages.db'}")
+    app = server.create_http_app()
+    with TestClient(app, base_url="https://mail.example.com") as client:
+        assert client.get("/terms").status_code == 200
+        assert client.get("/support").status_code == 200
+        assert client.get("/.well-known/openai-apps-challenge").text == "challenge-token"
+
+
 def test_mailbox_tokens_are_encrypted_at_rest(tmp_path):
     key = Fernet.generate_key().decode()
     store = OAuthStore(f"sqlite:///{tmp_path / 'test.db'}", key)

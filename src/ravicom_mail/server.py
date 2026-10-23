@@ -256,6 +256,37 @@ def create_http_app():
 <h2>Security and changes</h2><p>The service uses HTTPS in hosted deployments and encrypts stored Yandex tokens. This policy may be updated as the service changes; the effective date above will be revised when material changes are made.</p>
 </main></html>""")
 
+    @app_mcp.custom_route("/terms", methods=["GET"], include_in_schema=False)
+    async def terms(_: Request):
+        return HTMLResponse("""<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>RAVICOM Mail Terms</title>
+<main style="font:16px/1.6 system-ui;max-width:760px;margin:48px auto;padding:0 20px">
+<h1>RAVICOM Mail Terms of Service</h1><p>Effective date: 22 October 2026</p>
+<p>RAVICOM Mail is an optional tool that connects your own Yandex Mail account to ChatGPT through an authenticated MCP service.</p>
+<h2>Acceptable use</h2><p>You may use the service only with a mailbox you control or are authorized to manage. You are responsible for reviewing tool requests and confirming mailbox changes.</p>
+<h2>Service limits</h2><p>The service is provided as an evolving product and may be unavailable during maintenance. It does not send mail or permanently delete messages. Cleanup actions move messages to Trash only after an explicit confirmation.</p>
+<h2>Third-party services</h2><p>Yandex Mail and ChatGPT are separate services with their own terms, privacy policies, and availability. You must follow their rules when using RAVICOM Mail.</p>
+<h2>Changes and contact</h2><p>We may update these terms as the service changes. Material changes will be reflected in the effective date. For support, use the support page or the privacy contact shown there.</p>
+</main></html>""")
+
+    @app_mcp.custom_route("/support", methods=["GET"], include_in_schema=False)
+    async def support(_: Request):
+        contact = html.escape(os.getenv("PRIVACY_CONTACT_EMAIL", ""))
+        return HTMLResponse(f"""<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>RAVICOM Mail Support</title>
+<main style="font:16px/1.6 system-ui;max-width:760px;margin:48px auto;padding:0 20px">
+<h1>RAVICOM Mail Support</h1><p>RAVICOM Mail connects your Yandex Mail account to ChatGPT through MCP.</p>
+<h2>Common fixes</h2><ul><li>Keep the hosted service reachable at its HTTPS address.</li><li>Reconnect Yandex Mail if access has expired or the mailbox was disconnected.</li><li>Start with read-only tools such as folder listing and mailbox statistics.</li></ul>
+<h2>Contact</h2><p>For connection, privacy, or deletion requests, email <a href="mailto:{contact}">{contact}</a>.</p>
+</main></html>""")
+
+    @app_mcp.custom_route("/.well-known/openai-apps-challenge", methods=["GET"], include_in_schema=False)
+    async def openai_challenge(_: Request):
+        token = os.getenv("OPENAI_APPS_CHALLENGE", "")
+        if not token:
+            return JSONResponse({"error": "challenge not configured"}, status_code=404)
+        return HTMLResponse(token, media_type="text/plain")
+
     return app_mcp.streamable_http_app()
 
 
