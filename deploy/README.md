@@ -20,4 +20,14 @@ Register `https://DOMAIN/oauth/yandex/callback` in Yandex OAuth before starting 
 4. Verify `/health`, `/privacy`, `/terms`, `/support`, and the OAuth discovery endpoints.
 5. Use `plugin.json.example` as the submission manifest after replacing `YOUR_DOMAIN` and adding the final app identity assets.
 
+## VDSINA FASTPANEL
+
+If FASTPANEL already owns ports 80 and 443, use `docker-compose.fastpanel.yml` instead of the Caddy compose file:
+
+1. Start the application with `docker compose -f docker-compose.fastpanel.yml up -d --build`.
+2. In FASTPANEL, create a site for `DOMAIN` and enable a free Let's Encrypt certificate.
+3. Configure the site's reverse proxy to `http://127.0.0.1:8000` and preserve the `Host` and `X-Forwarded-Proto` headers.
+4. Register `https://DOMAIN/oauth/yandex/callback` in the Yandex OAuth application.
+5. Verify `https://DOMAIN/health`, `/privacy`, `/terms`, and `/support` before connecting the MCP manifest.
+
 Do not put Yandex secrets, access tokens, Fernet keys, or OpenAI runtime keys in Git, Docker images, plugin manifests, or support tickets.
