@@ -14,9 +14,9 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "RAVICOM Mail",
-        "shortDescription": "Manage your Yandex Mail",
-        "longDescription": "Connect your own Yandex Mail account to search messages, read mail, mark messages, move messages, and preview safe cleanup. RAVICOM Mail never sends mail or permanently deletes messages.",
+        "displayName": "RAVICOM Mail - Яндекс.Почта",
+        "shortDescription": "Почта Яндекса в ChatGPT",
+        "longDescription": "Подключите свой ящик Яндекс.Почты для поиска, чтения и организации писем. RAVICOM Mail не отправляет письма и не удаляет их безвозвратно.",
         "developerName": "RAVICOM",
         "category": "Productivity",
         "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
@@ -25,12 +25,12 @@
         "privacyPolicyURL": "https://mail.ravicom.ru/privacy",
         "termsOfServiceURL": "https://mail.ravicom.ru/terms",
         "defaultPrompt": [
-          "Show my Yandex Mail folders.",
-          "Find unread messages from this week.",
-          "Preview old read messages in my inbox."
+          "Покажи папки Яндекс.Почты.",
+          "Найди непрочитанные письма за эту неделю.",
+          "Покажи старые прочитанные письма во входящих."
         ],
-        "brandColor": "#111111",
-        "brandColorDark": "#FFFFFF",
+        "brandColor": "#FF1A1A",
+        "brandColorDark": "#FF3B30",
         "logo": "./assets/logo.svg",
         "composerIcon": "./assets/icon.svg"
       },
