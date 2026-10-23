@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 
@@ -190,6 +191,10 @@ def _new_mcp(remote: bool = False) -> FastMCP:
                                  client_registration_options=ClientRegistrationOptions(
                                      enabled=True, valid_scopes=["mail:read", "mail:manage"],
                                      default_scopes=["mail:read", "mail:manage"])),
+            "transport_security": TransportSecuritySettings(
+                allowed_hosts=["mail.ravicom.ru", "mail.ravicom.ru:443", "localhost", "127.0.0.1"],
+                allowed_origins=["https://mail.ravicom.ru"],
+            ),
         }
     server = FastMCP("RAVICOM Mail for Yandex", **kwargs)
     for tool in (list_folders, create_folder, mailbox_stats, search_mail, read_message, mark_read,
