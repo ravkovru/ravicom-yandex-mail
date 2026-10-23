@@ -105,7 +105,7 @@ def test_public_endpoints_are_live_and_mcp_requires_oauth(monkeypatch, tmp_path)
         assert client.get("/health").status_code == 200
         assert client.get("/privacy").status_code == 200
         assert client.get("/.well-known/oauth-authorization-server").status_code == 200
-        assert client.get("/.well-known/oauth-protected-resource").status_code == 200
+        assert client.get("/.well-known/oauth-protected-resource/mcp").status_code == 200
         assert client.post("/mcp", json={}).status_code == 401
 
 
