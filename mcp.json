@@ -3,7 +3,7 @@
   "mcpServers": {
     "ravicom-mail": {
       "type": "streamable-http",
-      "url": "https://YOUR_DOMAIN/mcp"
+      "url": "https://mail.ravicom.ru/mcp"
     }
   }
 }
