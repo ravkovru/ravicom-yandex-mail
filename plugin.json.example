@@ -5,9 +5,9 @@
   "description": "Connect your own Yandex Mail account to ChatGPT for safe mailbox search and organization.",
   "author": {
     "name": "RAVICOM",
-    "url": "https://YOUR_DOMAIN"
+    "url": "https://mail.ravicom.ru"
   },
-  "homepage": "https://YOUR_DOMAIN",
+  "homepage": "https://mail.ravicom.ru",
   "repository": "https://github.com/ravkovru/ravicom-yandex-mail",
   "license": "MIT",
   "keywords": ["yandex", "mail", "email", "inbox", "mcp"],
@@ -20,10 +20,10 @@
         "developerName": "RAVICOM",
         "category": "Productivity",
         "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
-        "websiteURL": "https://YOUR_DOMAIN",
-        "supportURL": "https://YOUR_DOMAIN/support",
-        "privacyPolicyURL": "https://YOUR_DOMAIN/privacy",
-        "termsOfServiceURL": "https://YOUR_DOMAIN/terms",
+        "websiteURL": "https://mail.ravicom.ru",
+        "supportURL": "https://mail.ravicom.ru/support",
+        "privacyPolicyURL": "https://mail.ravicom.ru/privacy",
+        "termsOfServiceURL": "https://mail.ravicom.ru/terms",
         "defaultPrompt": [
           "Show my Yandex Mail folders.",
           "Find unread messages from this week.",
