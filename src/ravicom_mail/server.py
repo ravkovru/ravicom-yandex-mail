@@ -180,13 +180,12 @@ def _new_mcp(remote: bool = False) -> FastMCP:
                             os.environ["TOKEN_ENCRYPTION_KEY"])
         _provider = YandexOAuthProvider(_store, base, os.environ["YANDEX_CLIENT_ID"],
                                         os.environ["YANDEX_CLIENT_SECRET"])
-        # The protected resource is the actual MCP endpoint.  Advertising the
-        # site root here makes RFC 9728 discovery ambiguous for clients that
-        # connect to /mcp and expect path-specific resource metadata.
-        resource_url = f"{base}/mcp"
         kwargs = {
             "auth_server_provider": _provider,
-            "auth": AuthSettings(issuer_url=base, resource_server_url=resource_url,
+            # ChatGPT sends the hosted service origin as the OAuth resource.
+            # Keep this value aligned with the token claim so authentication
+            # succeeds during tools/list discovery as well as tool calls.
+            "auth": AuthSettings(issuer_url=base, resource_server_url=base,
                                  required_scopes=["mail:read", "mail:manage"], validate_token_resource=True,
                                  client_registration_options=ClientRegistrationOptions(
                                      enabled=True, valid_scopes=["mail:read", "mail:manage"],
