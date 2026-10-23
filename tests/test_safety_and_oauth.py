@@ -5,9 +5,33 @@ from ravicom_mail.oauth import OAuthError, access_token
 from ravicom_mail import server
 from ravicom_mail.oauth_server import OAuthStore
 
+
+class _CreateFolderClient:
+    def __init__(self, response=("OK", [b"created"])):
+        self.response = response
+        self.calls = []
+
+    def create(self, folder):
+        self.calls.append(folder)
+        return self.response
+
 def test_cleanup_needs_exact_confirmation():
     with pytest.raises(ValueError,match="Explicit confirmation"):
         server.execute_cleanup("missing","yes")
+
+
+def test_create_folder_calls_imap_and_returns_name():
+    client = _CreateFolderClient()
+    assert server.mail.create_folder(client, "Projects") == {
+        "created": True,
+        "folder": "Projects",
+    }
+    assert client.calls == ["Projects"]
+
+
+def test_create_folder_rejects_empty_name():
+    with pytest.raises(server.mail.MailError, match="between 1 and 120"):
+        server.mail.create_folder(_CreateFolderClient(), "  ")
 
 def test_cleanup_preview_requires_minimum_age():
     with pytest.raises(ValueError,match="at least 30"):
