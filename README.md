@@ -24,7 +24,7 @@ Search dates use IMAP format such as `01-Jan-2025`; IDs are folder-scoped IMAP U
 
 ## Hosted public MCP deployment
 
-The repository includes the public product runbook in [`deploy/README.md`](deploy/README.md), a portable MCP server manifest in [`mcp.json`](mcp.json), and a public listing template in [`plugin.json.example`](plugin.json.example). Replace `YOUR_DOMAIN` only after the final HTTPS hostname is selected.
+The repository includes the public product runbook in [`deploy/README.md`](deploy/README.md), a portable MCP server manifest in [`mcp.json`](mcp.json), and a public listing template in [`plugin.json.example`](plugin.json.example). Replace `mail.ravicom.ru` only after the final HTTPS hostname is selected.
 
 Hosted mode is intended for a stable HTTPS deployment with a persistent writable volume mounted at `/data`. Each user authorizes their own Yandex mailbox through OAuth 2.1; Yandex tokens are encrypted in the database. Keep one service instance while using SQLite. Do not scale horizontally or remove the persistent disk without first moving to a shared database adapter.
 
@@ -32,10 +32,10 @@ Hosted mode is intended for a stable HTTPS deployment with a persistent writable
 
 Requirements: a Linux server with Docker Compose, a domain whose DNS A/AAAA records point to the server, and inbound ports 80 and 443 open. Caddy obtains and renews HTTPS certificates automatically.
 
-1. Create a Yandex OAuth application as described in Setup. For its web platform, add `https://YOUR_DOMAIN/oauth/yandex/callback` to the application's Redirect URI list. Yandex only accepts redirect URLs registered in the app settings.
+1. Create a Yandex OAuth application as described in Setup. For its web platform, add `https://mail.ravicom.ru/oauth/yandex/callback` to the application's Redirect URI list. Yandex only accepts redirect URLs registered in the app settings.
 2. On the server, copy `deploy/.env.production.example` to `.env.production`. Set `DOMAIN`, `PRIVACY_CONTACT_EMAIL`, `YANDEX_CLIENT_ID`, and `YANDEX_CLIENT_SECRET`. Generate the Fernet key locally with `python3 -c 'import base64,os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())'` and set `TOKEN_ENCRYPTION_KEY`. Keep `.env.production` private; Git ignores it.
 3. Start the service with `docker compose --env-file .env.production -f docker-compose.production.yml up -d --build`.
-4. Confirm `https://YOUR_DOMAIN/health` and `https://YOUR_DOMAIN/privacy` load. The public MCP endpoint is `https://YOUR_DOMAIN/mcp`.
+4. Confirm `https://mail.ravicom.ru/health` and `https://mail.ravicom.ru/privacy` load. The public MCP endpoint is `https://mail.ravicom.ru/mcp`.
 5. Add that HTTPS URL as a custom remote MCP server in an eligible ChatGPT workspace. Choose OAuth, complete Yandex authorization, then test `list_folders` and `mailbox_stats` before any write tool.
 
 The application container runs as a non-root user, has a health check, and stores its database on a persistent named volume. Caddy terminates TLS and proxies to the application over the private Docker network. Back up the database volume and Fernet key together; treat both as sensitive.
