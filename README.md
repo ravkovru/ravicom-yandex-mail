@@ -18,7 +18,9 @@ OAuth device authorization availability depends on Yandex application settings/a
 
 ## MCP tools
 
-`list_folders`, `create_folder`, `mailbox_stats`, `search_mail`, `read_message`, `mark_read`, `mark_unread`, `move_messages`, `cleanup_preview`, `execute_cleanup`.
+`list_folders`, `create_folder`, `mailbox_stats`, `search_mail`, `read_message`, `mark_read`, `mark_unread`, `move_messages`, `cleanup_preview`, `execute_cleanup`, `security_scan_preview`, `execute_security_move`.
+
+`security_scan_preview` is a no-change triage pass. It reads message headers, text and attachment metadata, flags risky extensions, IDN/HTTP links and urgent credential requests, and returns a short-lived preview. It does **not** claim antivirus or public-reputation coverage. `execute_security_move` requires the exact confirmation `MOVE SECURITY MATCHES TO SPAM` and moves only the preview's candidates to `Spam`.
 
 Search dates use IMAP format such as `01-Jan-2025`; IDs are folder-scoped IMAP UIDs. Results are capped at 200 and cleanup previews at 500. A preview expires after 15 minutes and can be executed once with exact confirmation `MOVE TO TRASH`. The server never exposes permanent deletion.
 
