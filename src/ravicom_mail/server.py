@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import html
 import os
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
@@ -25,6 +26,7 @@ load_dotenv()
 _store: OAuthStore | None = None
 _provider: YandexOAuthProvider | None = None
 _local_previews: dict[str, dict] = {}
+_local_security_previews: dict[str, dict] = {}
 
 
 def _mailbox_credentials() -> tuple[str | None, str | None]:
@@ -172,6 +174,91 @@ def execute_cleanup(preview_id: str, confirmation: str) -> dict:
     return _run(lambda c: mail.move(c, plan["folder"], "Trash", plan["uids"])) if plan["uids"] else {"moved": 0, "to": "Trash"}
 
 
+_DANGEROUS_EXTENSIONS = {".ade", ".adp", ".app", ".bat", ".cmd", ".com", ".cpl", ".docm", ".exe", ".hta", ".iso", ".jar", ".js", ".jse", ".lnk", ".msi", ".ps1", ".scr", ".sh", ".sys", ".vbe", ".vbs", ".wsf", ".xlsm", ".xlam"}
+_URL_RE = re.compile(r"https?://[^\s<>\"']+", re.I)
+
+
+def _security_reasons(message: dict) -> list[str]:
+    reasons = []
+    subject = str(message.get("subject", ""))
+    text = str(message.get("text", ""))
+    haystack = f"{subject}\n{text}"
+    for attachment in message.get("attachments", []):
+        name = str(attachment.get("filename", "")).lower()
+        if any(name.endswith(ext) for ext in _DANGEROUS_EXTENSIONS):
+            reasons.append(f"опасное расширение вложения: {attachment.get('filename')}")
+    urls = _URL_RE.findall(haystack)
+    if any("xn--" in url.lower() for url in urls):
+        reasons.append("ссылка на IDN/punycode-домен")
+    if any(url.lower().startswith("http://") for url in urls):
+        reasons.append("незашифрованная HTTP-ссылка")
+    if re.search(r"(срочно|немедленно|подтвердите|verification|verify|password|парол|код)", haystack, re.I):
+        reasons.append("требование срочного подтверждения или учётных данных")
+    return reasons
+
+
+def security_scan_preview(limit: int = 200) -> dict:
+    """Inspect visible headers, text and attachment metadata without changing mail.
+
+    This is a triage preview, not an antivirus or public-reputation verdict.
+    """
+    if not 1 <= limit <= 500:
+        raise ValueError("limit must be between 1 and 500")
+    folders = _run(mail.folders)
+    excluded = {"Spam", "Trash", "Deleted", "Удаленные", "Спам"}
+    candidates = []
+    scanned = 0
+    def scan(client):
+        nonlocal scanned
+        for folder in folders:
+            name = folder["name"]
+            if name in excluded or len(candidates) >= limit:
+                continue
+            messages = mail.search(client, name, limit=min(200, limit))
+            for summary in messages:
+                if len(candidates) >= limit:
+                    break
+                full = mail.read_message(client, name, summary["uid"])
+                scanned += 1
+                reasons = _security_reasons(full)
+                if reasons:
+                    candidates.append({**summary, "reasons": reasons, "message_id": full.get("Message-ID"), "attachments": full.get("attachments", [])})
+        return candidates
+    _run(scan)
+    preview_id = hashlib.sha256(os.urandom(32)).hexdigest()[:24]
+    token = get_access_token()
+    plan = {"candidates": candidates, "created": time.time()}
+    if token and _store and token.subject:
+        _store.save_preview(preview_id, token.subject, plan)
+    else:
+        _local_security_previews[preview_id] = plan
+    return {"preview_id": preview_id, "scanned": scanned, "matches": len(candidates), "messages": candidates,
+            "verdict": "heuristic_triage_only", "public_spam_bases_checked": False,
+            "limitations": ["IMAP access does not prove malware status", "public reputation databases and sandboxing are not configured", "review matches before moving"],
+            "expires_in_seconds": 900}
+
+
+def execute_security_move(preview_id: str, confirmation: str) -> dict:
+    """Move an unexpired security preview to Spam after exact confirmation."""
+    if confirmation != "MOVE SECURITY MATCHES TO SPAM":
+        raise ValueError("Explicit confirmation required: MOVE SECURITY MATCHES TO SPAM")
+    _require_manage()
+    token = get_access_token()
+    if token and _store and token.subject:
+        plan = _store.take_preview(preview_id, token.subject)
+    else:
+        plan = _local_security_previews.pop(preview_id, None)
+        if plan and time.time() - plan["created"] > 900:
+            plan = None
+    if not plan:
+        raise ValueError("Security preview missing, expired, or belongs to another user")
+    moved = 0
+    for item in plan["candidates"]:
+        _run(lambda c, item=item: mail.move(c, item["folder"], "Spam", [item["uid"]]))
+        moved += 1
+    return {"moved": moved, "to": "Spam"}
+
+
 def _new_mcp(remote: bool = False) -> FastMCP:
     global _store, _provider
     kwargs = {}
@@ -198,7 +285,8 @@ def _new_mcp(remote: bool = False) -> FastMCP:
         }
     server = FastMCP("RAVICOM Mail for Yandex", **kwargs)
     for tool in (list_folders, create_folder, mailbox_stats, search_mail, read_message, mark_read,
-                 mark_unread, move_messages, cleanup_preview, execute_cleanup):
+                 mark_unread, move_messages, cleanup_preview, execute_cleanup, security_scan_preview,
+                 execute_security_move):
         server.add_tool(tool)
     return server
 
