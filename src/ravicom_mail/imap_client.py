@@ -1,5 +1,5 @@
 """IMAP XOAUTH2 operations."""
-import os, imaplib, email, re
+import os, imaplib, email, re, hashlib
 from email.header import decode_header, make_header
 from .oauth import access_token
 
@@ -59,12 +59,16 @@ def summary(client,folder,uid):
 def read_message(client,folder,uid):
     _select(client,folder); typ,data=client.fetch(str(uid),"(RFC822)")
     if typ!="OK": raise MailError(f"Cannot read message {uid}")
-    msg=email.message_from_bytes(data[0][1]); out={k:str(make_header(decode_header(msg.get(k,"")))) for k in ("Subject","From","To","Date")}; parts=[]
+    raw = data[0][1]
+    msg=email.message_from_bytes(raw); out={k:str(make_header(decode_header(msg.get(k,"")))) for k in ("Subject","From","To","Date","Message-ID","Reply-To","Return-Path","Authentication-Results")}; parts=[]; attachments=[]
     for part in msg.walk():
+        filename = part.get_filename()
+        payload = part.get_payload(decode=True) or b""
+        if filename or (part.get_content_disposition() == "attachment"):
+            attachments.append({"filename": str(make_header(decode_header(filename or ""))), "content_type": part.get_content_type(), "size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()})
         if part.get_content_type()=="text/plain" and not part.get_filename():
-            payload=part.get_payload(decode=True)
             if payload: parts.append(payload.decode(part.get_content_charset() or "utf-8",errors="replace"))
-    out["text"]="\n".join(parts)[:30000]; return out
+    out["text"]="\n".join(parts)[:30000]; out["attachments"] = attachments; return out
 
 def set_read(client,folder,uids,read=True):
     _select(client,folder); typ,_=client.store(",".join(map(str,uids)),"+FLAGS" if read else "-FLAGS","\\Seen")
