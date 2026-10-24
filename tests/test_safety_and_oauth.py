@@ -58,6 +58,22 @@ def test_local_cleanup_preview_moves_to_trash_once(monkeypatch):
     with pytest.raises(ValueError, match="Preview missing"):
         server.execute_cleanup(preview["preview_id"], "MOVE TO TRASH")
 
+
+def test_security_scan_flags_dangerous_attachment(monkeypatch):
+    monkeypatch.setattr(server, "_run", lambda fn: fn(object()))
+    monkeypatch.setattr(server.mail, "folders", lambda _c: [{"name": "INBOX"}])
+    monkeypatch.setattr(server.mail, "search", lambda *args, **kwargs: [{"uid": "7", "folder": "INBOX", "subject": "Срочно", "from": "x@example.com"}])
+    monkeypatch.setattr(server.mail, "read_message", lambda *args: {"Message-ID": "<7>", "attachments": [{"filename": "invoice.exe"}], "text": ""})
+    server._local_security_previews.clear()
+    result = server.security_scan_preview(limit=10)
+    assert result["matches"] == 1
+    assert "опасное расширение" in result["messages"][0]["reasons"][0]
+
+
+def test_security_move_needs_exact_confirmation():
+    with pytest.raises(ValueError, match="Explicit confirmation"):
+        server.execute_security_move("missing", "yes")
+
 def test_missing_token_is_clear(monkeypatch):
     monkeypatch.delenv("YANDEX_ACCESS_TOKEN",raising=False)
     with pytest.raises(OAuthError,match="YANDEX_ACCESS_TOKEN"):
@@ -105,7 +121,7 @@ def test_public_endpoints_are_live_and_mcp_requires_oauth(monkeypatch, tmp_path)
         assert client.get("/health").status_code == 200
         assert client.get("/privacy").status_code == 200
         assert client.get("/.well-known/oauth-authorization-server").status_code == 200
-        assert client.get("/.well-known/oauth-protected-resource/mcp").status_code == 200
+        assert client.get("/.well-known/oauth-protected-resource").status_code == 200
         assert client.post("/mcp", json={}).status_code == 401
 
 
