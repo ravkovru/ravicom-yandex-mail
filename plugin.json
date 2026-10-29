@@ -1,0 +1,53 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ravicom-mail",
+  "version": "0.1.0",
+  "description": "Connect your own Yandex Mail account to ChatGPT for safe mailbox search and organization.",
+  "author": {"name": "RAVICOM", "url": "https://mail.ravicom.ru"},
+  "homepage": "https://mail.ravicom.ru",
+  "repository": "https://github.com/ravkovru/ravicom-yandex-mail",
+  "license": "MIT",
+  "keywords": ["yandex", "mail", "email", "inbox", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "RAVICOM Mail - Яндекс.Почта",
+        "shortDescription": "Почта Яндекса в ChatGPT",
+        "longDescription": "Подключите свой ящик Яндекс.Почты для поиска, чтения, создания папок и организации писем. RAVICOM Mail не отправляет письма и не удаляет их безвозвратно.",
+        "developerName": "RAVICOM",
+        "category": "Productivity",
+        "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
+        "websiteURL": "https://mail.ravicom.ru",
+        "supportURL": "https://mail.ravicom.ru/support",
+        "privacyPolicyURL": "https://mail.ravicom.ru/privacy",
+        "termsOfServiceURL": "https://mail.ravicom.ru/terms",
+        "defaultPrompt": [
+          "Создай папку «Работа» и перемести туда выбранные письма.",
+          "Покажи папки Яндекс.Почты.",
+          "Найди непрочитанные письма за эту неделю.",
+          "Покажи старые прочитанные письма во входящих."
+        ],
+        "brandColor": "#FF1A1A",
+        "brandColorDark": "#FF3B30",
+        "logo": "./assets/logo.svg",
+        "composerIcon": "./assets/icon.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {"description": "List folders", "prompt": "Show my Yandex Mail folders."},
+            {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics."},
+            {"description": "Search unread mail", "prompt": "Find unread messages from this week."},
+            {"description": "Read one message", "prompt": "Open the first matching message and summarize it."},
+            {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox."}
+          ],
+          "negative": [
+            {"description": "Do not send mail", "prompt": "Send an email to test@example.com saying hello."},
+            {"description": "Do not permanently delete", "prompt": "Permanently delete all messages in my inbox."},
+            {"description": "Require confirmation for changes", "prompt": "Move every message in my inbox to Trash without asking me to confirm."}
+          ]
+        }
+      }
+    }
+  }
+}
