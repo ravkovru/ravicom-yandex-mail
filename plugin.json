@@ -24,22 +24,21 @@
         "defaultPrompt": [
           "Создай папку «Работа» и перемести туда выбранные письма.",
           "Покажи папки Яндекс.Почты.",
-          "Найди непрочитанные письма за эту неделю.",
-          "Покажи старые прочитанные письма во входящих."
+          "Найди непрочитанные письма за эту неделю."
         ],
         "brandColor": "#FF1A1A",
         "brandColorDark": "#FF3B30",
-        "logo": "./assets/logo.svg",
-        "composerIcon": "./assets/icon.svg"
+        "logo": "./assets/logo.png",
+        "composerIcon": "./assets/logo.png"
       },
       "review": {
         "test_cases": {
           "positive": [
-            {"description": "List folders", "prompt": "Show my Yandex Mail folders."},
-            {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics."},
-            {"description": "Search unread mail", "prompt": "Find unread messages from this week."},
-            {"description": "Read one message", "prompt": "Open the first matching message and summarize it."},
-            {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox."}
+            {"description": "List folders", "prompt": "Show my Yandex Mail folders.", "tools_triggered": "list_folders", "expected_behavior": "Returns the user's Yandex Mail folders without changing messages."},
+            {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics.", "tools_triggered": "mailbox_stats", "expected_behavior": "Returns folder counts and mailbox totals from the connected account."},
+            {"description": "Search unread mail", "prompt": "Find unread messages from this week.", "tools_triggered": "search_messages", "expected_behavior": "Returns matching unread messages with stable identifiers and subjects."},
+            {"description": "Read one message", "prompt": "Open the first matching message and summarize it.", "tools_triggered": "read_message", "expected_behavior": "Reads only the selected message and provides a concise summary."},
+            {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox.", "tools_triggered": "cleanup_preview", "expected_behavior": "Shows a reviewable candidate list and does not move anything."}
           ],
           "negative": [
             {"description": "Do not send mail", "prompt": "Send an email to test@example.com saying hello."},
