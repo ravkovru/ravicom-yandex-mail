@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ravicom-mail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Connect your own Yandex Mail account to ChatGPT for safe mailbox search and organization.",
   "author": {"name": "RAVICOM", "url": "https://mail.ravicom.ru"},
   "homepage": "https://mail.ravicom.ru",
@@ -36,7 +36,7 @@
           "positive": [
             {"description": "List folders", "prompt": "Show my Yandex Mail folders.", "tools_triggered": "list_folders", "expected_behavior": "Returns the user's Yandex Mail folders without changing messages."},
             {"description": "Show mailbox statistics", "prompt": "Show my mailbox statistics.", "tools_triggered": "mailbox_stats", "expected_behavior": "Returns folder counts and mailbox totals from the connected account."},
-            {"description": "Search unread mail", "prompt": "Find unread messages from this week.", "tools_triggered": "search_messages", "expected_behavior": "Returns matching unread messages with stable identifiers and subjects."},
+            {"description": "Search unread mail", "prompt": "Find unread messages from this week.", "tools_triggered": "search_mail", "expected_behavior": "Returns matching unread messages with stable identifiers and subjects."},
             {"description": "Read one message", "prompt": "Open the first matching message and summarize it.", "tools_triggered": "read_message", "expected_behavior": "Reads only the selected message and provides a concise summary."},
             {"description": "Preview cleanup", "prompt": "Preview old read messages in my inbox.", "tools_triggered": "cleanup_preview", "expected_behavior": "Shows a reviewable candidate list and does not move anything."}
           ],
@@ -45,7 +45,11 @@
             {"description": "Do not permanently delete", "prompt": "Permanently delete all messages in my inbox."},
             {"description": "Require confirmation for changes", "prompt": "Move every message in my inbox to Trash without asking me to confirm."}
           ]
-        }
+        },
+        "commerce": false
+      },
+      "publication": {
+        "release_notes": "Version 0.1.1 adds a public-submission manifest, verified icon assets, and safe mailbox security triage while preserving confirmation gates for mailbox changes."
       }
     }
   }
