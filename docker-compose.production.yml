@@ -13,8 +13,8 @@ services:
       MCP_PORT: 8000
       PUBLIC_BASE_URL: https://${DOMAIN}
       DATABASE_URL: sqlite:////data/ravicom-mail.sqlite3
-    expose:
-      - "8000"
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - ravicom-mail-data:/data
     healthcheck:
