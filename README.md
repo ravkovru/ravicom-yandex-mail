@@ -1,6 +1,6 @@
-# RAVICOM Mail for Yandex
+# MailPilot для Яндекс.Почты
 
-RAVICOM Mail connects ChatGPT to Yandex Mail through MCP, IMAP over TLS, and OAuth/XOAUTH2. It never accepts mailbox passwords, sends mail, or permanently deletes messages. Cleanup first previews candidates and only moves them to Trash after an explicit second call.
+MailPilot connects ChatGPT to Yandex Mail through MCP, IMAP over TLS, and OAuth/XOAUTH2. Это сторонний инструмент RAVICOM, не официальное приложение Яндекса. Он никогда не принимает пароль от почты, не отправляет письма и не удаляет их безвозвратно. Очистка сначала показывает кандидатов, а затем перемещает их в Корзину только после отдельного подтверждения.
 
 ## Platform and interface boundary
 
