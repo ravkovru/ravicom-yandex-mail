@@ -4,7 +4,7 @@ MailPilot connects ChatGPT to Yandex Mail through MCP, IMAP over TLS, and OAuth/
 
 ## Platform and interface boundary
 
-This project is a hosted MCP integration consumed through ChatGPT's native app interface; it is not a Chrome, Safari, or Firefox extension and does not contain a separate browser UI. The visual shell, keyboard navigation, focus treatment, and responsive layout are provided by the host ChatGPT client. RAVICOM Mail controls the mailbox workflow and response content only, and always identifies itself as a third-party Yandex Mail tool. A standalone browser extension would require a separate frontend target, extension manifest, and an explicitly chosen browser permission model.
+This project is a hosted MCP integration consumed through ChatGPT's native app interface; it is not a Chrome, Safari, or Firefox extension and does not contain a separate browser UI. The visual shell, keyboard navigation, focus treatment, and responsive layout are provided by the host ChatGPT client. MailPilot controls the mailbox workflow and response content only, and always identifies itself as a third-party Yandex Mail tool. A standalone browser extension would require a separate frontend target, extension manifest, and an explicitly chosen browser permission model.
 
 The repository supports local single-user development and a hosted per-user OAuth mode. Hosted mode gives every ChatGPT user their own Yandex authorization; Yandex tokens are encrypted at rest and cleanup confirmations are isolated by account. A public listing also requires an HTTPS domain, privacy policy, verified publisher identity, and OpenAI app review; deployment and listing are not automatic.
 
@@ -44,7 +44,7 @@ Requirements: a Linux server with Docker Compose, a domain whose DNS A/AAAA reco
 4. Confirm `https://mail.ravicom.ru/health` and `https://mail.ravicom.ru/privacy` load. The public MCP endpoint is `https://mail.ravicom.ru/mcp`.
 5. Add that HTTPS URL as a custom remote MCP server in an eligible ChatGPT workspace. Choose OAuth, complete Yandex authorization, then test `list_folders` and `mailbox_stats` before any write tool.
 
-The application container runs as a non-root user, has a health check, and stores its database on a persistent named volume. Caddy terminates TLS and proxies to the application over the private Docker network. Back up the database volume and Fernet key together; treat both as sensitive.
+The application container runs as a non-root user, has a health check, and stores its database on a persistent named volume. Caddy is available as an optional Compose profile; on the current VDS, the host Nginx terminates TLS and proxies to the application. Back up the database volume and Fernet key together; treat both as sensitive.
 
 ### Hosted environment variables
 
@@ -91,7 +91,7 @@ This keeps the MCP server and Yandex token on your computer. The OpenAI tunnel c
    ```
 
    Keep this process running. The wrapper starts the MCP server from the project directory and removes the OpenAI runtime key from the server process environment. The server reads the Yandex access token from `.env`; it stays on this computer.
-6. In ChatGPT Plugins, add a custom MCP server named `RAVICOM Mail`, choose **Tunnel**, select or enter the same tunnel ID, and choose **No authentication** for the private tunnel transport. Review the risk notice and create the plugin. Use the app in a new ChatGPT chat, then test `list_folders` and `mailbox_stats` before any write tools.
+6. In ChatGPT Plugins, add a custom MCP server named `MailPilot`, choose **Tunnel**, select or enter the same tunnel ID, and choose **No authentication** for the private tunnel transport. Review the risk notice and create the plugin. Use the app in a new ChatGPT chat, then test `list_folders` and `mailbox_stats` before any write tools.
 
 ChatGPT must allow custom MCP connections for your account/workspace. OpenAI's current documentation lists full custom MCP for Business and Enterprise/Edu; Pro supports read/fetch only. Plus is not listed as eligible, so the presence of the form alone does not guarantee the server can be used. If the connection is unavailable on your plan, use an eligible workspace to test the full MVP. ChatGPT custom MCP authentication does not accept a customer-provided API key; Secure MCP Tunnel provides the private transport, while Yandex OAuth authorizes this local server to access the mailbox.
 
