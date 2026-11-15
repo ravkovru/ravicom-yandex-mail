@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "ravicom-mail",
-  "version": "0.1.1",
-  "description": "Connect your own Yandex Mail account to ChatGPT for safe mailbox search and organization.",
+  "name": "mailpilot-yandex",
+  "version": "0.2.0",
+  "description": "A safe third-party companion for searching and organizing your Yandex Mail in ChatGPT.",
   "author": {"name": "RAVICOM", "url": "https://mail.ravicom.ru"},
   "homepage": "https://mail.ravicom.ru",
   "repository": "https://github.com/ravkovru/ravicom-yandex-mail",
@@ -11,9 +11,9 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "RAVICOM Mail - Яндекс.Почта",
-        "shortDescription": "Почта Яндекса в ChatGPT",
-        "longDescription": "Подключите свой ящик Яндекс.Почты для поиска, чтения, создания папок и организации писем. RAVICOM Mail не отправляет письма и не удаляет их безвозвратно.",
+        "displayName": "MailPilot для Яндекс.Почты",
+        "shortDescription": "Управление почтой Яндекса",
+        "longDescription": "MailPilot — сторонний инструмент для подключения собственного ящика Яндекс.Почты к ChatGPT. Ищите, читайте и организуйте письма, создавайте папки и предварительно проверяйте очистку. MailPilot не запрашивает пароль, не отправляет письма и не удаляет их безвозвратно.",
         "developerName": "RAVICOM",
         "category": "Productivity",
         "capabilities": ["Search mail", "Read mail", "Organize mail", "Preview cleanup"],
@@ -26,8 +26,8 @@
           "Покажи папки Яндекс.Почты.",
           "Найди непрочитанные письма за эту неделю."
         ],
-        "brandColor": "#FF1A1A",
-        "brandColorDark": "#FF3B30",
+        "brandColor": "#18C2B5",
+        "brandColorDark": "#49E1D5",
         "logo": "./assets/logo.png",
         "composerIcon": "./assets/logo.png"
       },
@@ -49,7 +49,7 @@
         "commerce": false
       },
       "publication": {
-        "release_notes": "Version 0.1.1 adds a public-submission manifest, verified icon assets, and safe mailbox security triage while preserving confirmation gates for mailbox changes."
+        "release_notes": "MailPilot 0.2.0 introduces a shorter product name, a distinctive third-party visual identity, clearer mailbox states, and safer confirmation-first organization workflows."
       }
     }
   }
