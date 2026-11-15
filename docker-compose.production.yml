@@ -27,6 +27,7 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    profiles: ["caddy"]
     dns:
       - 1.1.1.1
       - 8.8.8.8
