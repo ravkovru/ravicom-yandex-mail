@@ -283,7 +283,7 @@ def _new_mcp(remote: bool = False) -> FastMCP:
                 allowed_origins=["https://mail.ravicom.ru"],
             ),
         }
-    server = FastMCP("RAVICOM Mail for Yandex", **kwargs)
+    server = FastMCP("MailPilot for Yandex Mail", **kwargs)
     for tool in (list_folders, create_folder, mailbox_stats, search_mail, read_message, mark_read,
                  mark_unread, move_messages, cleanup_preview, execute_cleanup, security_scan_preview,
                  execute_security_move):
@@ -305,7 +305,7 @@ def create_http_app():
     app_mcp = _new_mcp(remote=True)
     @app_mcp.custom_route("/health", methods=["GET"], include_in_schema=False)
     async def health(_: Request):
-        return JSONResponse({"status": "ok", "service": "RAVICOM Mail for Yandex"})
+        return JSONResponse({"status": "ok", "service": "MailPilot for Yandex Mail"})
 
     @app_mcp.custom_route("/oauth/yandex/callback", methods=["GET", "POST"], include_in_schema=False)
     async def yandex_callback(request: Request):
@@ -339,7 +339,7 @@ def create_http_app():
 
     @app_mcp.custom_route("/", methods=["GET"], include_in_schema=False)
     async def root(_: Request):
-        return JSONResponse({"service": "RAVICOM Mail for Yandex", "mcp": "/mcp", "health": "/health"})
+        return JSONResponse({"service": "MailPilot for Yandex Mail", "mcp": "/mcp", "health": "/health"})
 
     @app_mcp.custom_route("/privacy", methods=["GET"], include_in_schema=False)
     async def privacy(_: Request):
@@ -347,12 +347,12 @@ def create_http_app():
         if not contact:
             return HTMLResponse("Privacy contact is not configured.", status_code=503)
         return HTMLResponse(f"""<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>RAVICOM Mail Privacy Policy</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>MailPilot Privacy Policy</title>
 <main style="font:16px/1.6 system-ui;max-width:760px;margin:48px auto;padding:0 20px">
-<h1>RAVICOM Mail Privacy Policy</h1><p>Effective date: 22 October 2026</p>
-<p>RAVICOM Mail is an MCP service that lets a user connect their own Yandex Mail account to ChatGPT. The service processes mailbox requests only to provide the tools selected by the user.</p>
+<h1>MailPilot Privacy Policy</h1><p>Effective date: 22 October 2026</p>
+<p>MailPilot is a third-party MCP service that lets a user connect their own Yandex Mail account to ChatGPT. The service processes mailbox requests only to provide the tools selected by the user.</p>
 <h2>Information processed</h2><p>When you connect, the service receives Yandex OAuth access and refresh tokens, the mailbox address you enter, and OAuth connection metadata. When you use a tool, the service temporarily processes the messages and mailbox information needed to answer that request. Message bodies are not written to the service database. A cleanup preview stores folder names and message UIDs until used or the connection is revoked; the preview can only be executed for 15 minutes.</p>
-<h2>How information is used and shared</h2><p>OAuth tokens are encrypted in the service database and used only to access the connected mailbox through Yandex IMAP. Mailbox content returned by a tool is sent to ChatGPT to fulfill your request and is subject to the data handling terms and settings of your ChatGPT account. RAVICOM Mail does not sell mailbox data, use it for advertising, send messages, or permanently delete messages.</p>
+<h2>How information is used and shared</h2><p>OAuth tokens are encrypted in the service database and used only to access the connected mailbox through Yandex IMAP. Mailbox content returned by a tool is sent to ChatGPT to fulfill your request and is subject to the data handling terms and settings of your ChatGPT account. MailPilot does not sell mailbox data, use it for advertising, send messages, or permanently delete messages.</p>
 <h2>Retention and deletion</h2><p>Mailbox tokens and address are retained while the connection is active. Disconnect or revoke RAVICOM Mail in ChatGPT to delete the connection's tokens, address, and pending cleanup previews. Expired previews are unusable after 15 minutes. Operational security logs may contain request metadata, but should not include message bodies or OAuth secrets.</p>
 <h2>Your choices and contact</h2><p>You can decline authorization or disconnect at any time. For privacy questions or deletion requests, contact <a href="mailto:{contact}">{contact}</a>.</p>
 <h2>Security and changes</h2><p>The service uses HTTPS in hosted deployments and encrypts stored Yandex tokens. This policy may be updated as the service changes; the effective date above will be revised when material changes are made.</p>
@@ -361,10 +361,10 @@ def create_http_app():
     @app_mcp.custom_route("/terms", methods=["GET"], include_in_schema=False)
     async def terms(_: Request):
         return HTMLResponse("""<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>RAVICOM Mail Terms</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>MailPilot Terms</title>
 <main style="font:16px/1.6 system-ui;max-width:760px;margin:48px auto;padding:0 20px">
-<h1>RAVICOM Mail Terms of Service</h1><p>Effective date: 22 October 2026</p>
-<p>RAVICOM Mail is an optional tool that connects your own Yandex Mail account to ChatGPT through an authenticated MCP service.</p>
+<h1>MailPilot Terms of Service</h1><p>Effective date: 22 October 2026</p>
+<p>MailPilot is an optional third-party tool that connects your own Yandex Mail account to ChatGPT through an authenticated MCP service.</p>
 <h2>Acceptable use</h2><p>You may use the service only with a mailbox you control or are authorized to manage. You are responsible for reviewing tool requests and confirming mailbox changes.</p>
 <h2>Service limits</h2><p>The service is provided as an evolving product and may be unavailable during maintenance. It does not send mail or permanently delete messages. Cleanup actions move messages to Trash only after an explicit confirmation.</p>
 <h2>Third-party services</h2><p>Yandex Mail and ChatGPT are separate services with their own terms, privacy policies, and availability. You must follow their rules when using RAVICOM Mail.</p>
@@ -375,9 +375,9 @@ def create_http_app():
     async def support(_: Request):
         contact = html.escape(os.getenv("PRIVACY_CONTACT_EMAIL", ""))
         return HTMLResponse(f"""<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>RAVICOM Mail Support</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>MailPilot Support</title>
 <main style="font:16px/1.6 system-ui;max-width:760px;margin:48px auto;padding:0 20px">
-<h1>RAVICOM Mail Support</h1><p>RAVICOM Mail connects your Yandex Mail account to ChatGPT through MCP.</p>
+<h1>MailPilot Support</h1><p>MailPilot connects your Yandex Mail account to ChatGPT through MCP.</p>
 <h2>Common fixes</h2><ul><li>Keep the hosted service reachable at its HTTPS address.</li><li>Reconnect Yandex Mail if access has expired or the mailbox was disconnected.</li><li>Start with read-only tools such as folder listing and mailbox statistics.</li></ul>
 <h2>Contact</h2><p>For connection, privacy, or deletion requests, email <a href="mailto:{contact}">{contact}</a>.</p>
 </main></html>""")
