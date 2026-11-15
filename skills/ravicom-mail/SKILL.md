@@ -1,11 +1,11 @@
 ---
 name: ravicom-mail
-description: Safely inspect, search, sort, and clean a connected Yandex Mail mailbox with the RAVICOM Mail MCP tools. Use when the user asks to find, summarize, label by read state, move, or preview cleanup of Yandex Mail messages.
+description: Safely inspect, search, sort, and clean a connected Yandex Mail mailbox with the MailPilot MCP tools. Use when the user asks to find, summarize, label by read state, move, or preview cleanup of Yandex Mail messages.
 ---
 
 # RAVICOM Mail workflow
 
-Use this skill together with a connected **RAVICOM Mail for Yandex** MCP app. The skill describes the workflow; the MCP app supplies live mailbox access. If the app or a required tool is unavailable, say so and give setup guidance. Never imply mailbox access just because this skill is installed.
+Use this skill together with a connected **MailPilot для Яндекс.Почты** MCP app. MailPilot is a third-party tool, not an official Yandex application. The skill describes the workflow; the MCP app supplies live mailbox access. If the app or a required tool is unavailable, say so and give setup guidance. Never imply mailbox access just because this skill is installed.
 
 ## Start safely
 
