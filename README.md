@@ -2,6 +2,10 @@
 
 RAVICOM Mail connects ChatGPT to Yandex Mail through MCP, IMAP over TLS, and OAuth/XOAUTH2. It never accepts mailbox passwords, sends mail, or permanently deletes messages. Cleanup first previews candidates and only moves them to Trash after an explicit second call.
 
+## Platform and interface boundary
+
+This project is a hosted MCP integration consumed through ChatGPT's native app interface; it is not a Chrome, Safari, or Firefox extension and does not contain a separate browser UI. The visual shell, keyboard navigation, focus treatment, and responsive layout are provided by the host ChatGPT client. RAVICOM Mail controls the mailbox workflow and response content only, and always identifies itself as a third-party Yandex Mail tool. A standalone browser extension would require a separate frontend target, extension manifest, and an explicitly chosen browser permission model.
+
 The repository supports local single-user development and a hosted per-user OAuth mode. Hosted mode gives every ChatGPT user their own Yandex authorization; Yandex tokens are encrypted at rest and cleanup confirmations are isolated by account. A public listing also requires an HTTPS domain, privacy policy, verified publisher identity, and OpenAI app review; deployment and listing are not automatic.
 
 ## Setup
