@@ -39,6 +39,19 @@ Use this skill together with a connected **RAVICOM Mail for Yandex** MCP app. Th
 
 Never guess a `preview_id`, reuse an expired preview, expand its criteria after approval, or claim cleanup occurred unless `execute_cleanup` succeeded.
 
+## User-facing response contract
+
+RAVICOM Mail is a third-party MCP integration, not an official Yandex application. When starting a mailbox operation, briefly state what is being checked and which folder or date range is in scope. Do not expose tokens, passwords, raw IMAP commands, or internal stack traces.
+
+- Loading: say that the mailbox is being queried; do not invent progress or counts.
+- Success: lead with the count or outcome, then show folder, sender, date, subject, and the next safe action. Keep long lists collapsed to a short sample and offer narrowing filters.
+- Empty result: say explicitly that no matching messages were found and suggest one concrete broader filter; do not treat an empty result as an error.
+- Authentication or availability error: explain that the mailbox connection is unavailable, preserve the user's data, and ask them to reconnect or retry. Do not fall back to guessed or cached mailbox contents.
+- Partial result: label the response as partial, state what was skipped, and never claim a complete scan.
+- Mutations: state the exact source and destination folders, require the tool's confirmation flow, and report the number actually changed.
+
+Use short headings and readable tables or bullets. Keep all actions usable from a keyboard through the host ChatGPT interface; do not rely on color alone to communicate status. Always include a brief third-party notice when the user could mistake this integration for Yandex Mail itself.
+
 ## Tool error handling
 
 - If authentication fails, tell the user to reconnect/re-authorize the Yandex account. Do not request their token in the conversation.
